@@ -8,6 +8,7 @@ import org.example.order.dto.OrderLineStatus;
 import org.example.order.OrderLineStatusRepo;
 import org.example.order.dto.Status;
 import org.example.pipeline.exceptions.PipelineExecutionError;
+import org.example.refund.Refund2Op;
 import org.example.refund.RefundOp;
 import org.example.refund.dto.RefundPointsStepResponse;
 import org.example.refund.dto.RefundTransactionPaymentStepRequest;
@@ -15,6 +16,15 @@ import org.example.refund.dto.RefundTransactionPaymentStepRequest;
 public class RefundPipelineV3 {
 
     public static void main(String[] args) {
+
+        tryRefundAndFirstStepFailsUseCase();
+
+        tryNewRefundWithSameStepsShouldReusePipelineUseCase();
+
+        tryNewRefundWithDifferentStepsShouldCreateNewPipelineUseCase();
+    }
+
+    private static void tryRefundAndFirstStepFailsUseCase() {
         // Example: Process refund for Personal Credit payment method
         String orderId = "ORDER-12345";
         OrderLineStatusRepo.save(orderId, new OrderLineStatus(Status.PENDING, Optional.empty()));
@@ -39,5 +49,42 @@ public class RefundPipelineV3 {
         RefundPointsStepResponse result2 = new RefundOp().processRefund(initialInput);
         System.out.println("Result: " + result2);
         System.out.println();
+    }
+
+    private static void tryNewRefundWithSameStepsShouldReusePipelineUseCase() {
+        // Simulate another request that uses the same pipeline (a new pipeline will not be created)
+        System.out.println("=== New request execution (should reuse existing pipeline) ===");
+        String anotherOrderId = "ORDER-12346";
+        OrderLineStatusRepo.save(anotherOrderId, new OrderLineStatus(Status.PENDING, Optional.empty()));
+
+        RefundTransactionPaymentStepRequest anotherInitialInput = new RefundTransactionPaymentStepRequest(
+                new OrderAssociatedIdsAndCreationDate(anotherOrderId),
+                List.of(new OrderLineDetails("LINE-2")),
+                Optional.empty());
+
+        try {
+            RefundPointsStepResponse result3 = new RefundOp().processRefund(anotherInitialInput);
+        } catch (PipelineExecutionError e) {
+            System.out.println("Use case finished");
+        }
+        System.out.println();
+    }
+
+    private static void tryNewRefundWithDifferentStepsShouldCreateNewPipelineUseCase() {
+        // Simulate changes to the refundOp -> it will create a new pipeline
+        System.out.println("=== Simulate pipeline change and execute ===");
+        String newOrderId = "ORDER-67890";
+        OrderLineStatusRepo.save(newOrderId, new OrderLineStatus(Status.PENDING, Optional.empty()));
+
+        RefundTransactionPaymentStepRequest changedInitialInput = new RefundTransactionPaymentStepRequest(
+                new OrderAssociatedIdsAndCreationDate(newOrderId),
+                List.of(new OrderLineDetails("LINE-3")),
+                Optional.empty());
+
+        try {
+            RefundPointsStepResponse result4 = new Refund2Op().processRefund(changedInitialInput);
+        } catch (PipelineExecutionError e) {
+            System.out.println("Use case with changed pipeline finished");
+        }
     }
 }

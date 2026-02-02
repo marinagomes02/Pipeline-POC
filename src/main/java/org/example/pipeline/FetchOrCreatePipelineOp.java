@@ -34,28 +34,34 @@ public class FetchOrCreatePipelineOp {
     }
 
     private PipelineEntity createNewPipeline(List<StepDefinition> stepDefinitions, String pipelineHash) {
-        String pipelineId = UUID.randomUUID().toString();
+        PipelineEntity pipelineEntity = savePipeline(pipelineHash);
 
-        PipelineEntity pipelineEntity = new PipelineEntity(
-                pipelineId,
-                pipelineHash);
-
-        PipelineRepo.save(pipelineEntity);
-
-        for (StepDefinition stepDef : stepDefinitions) {
-            String stepId = UUID.randomUUID().toString();
-            StepEntity stepEntity = new StepEntity(
-                    stepId,
-                    pipelineId,
-                    stepDef.operationName(),
-                    stepDef.order(),
-                    stepDef.stage());
-            StepRepo.save(stepEntity);
-        }
+        stepDefinitions.forEach(stepDef ->
+                saveStep(stepDef, pipelineEntity.pipelineId()));
 
         System.out.println("Created new pipeline with hash: " + pipelineHash + " and " + stepDefinitions.size() + " steps");
 
         return pipelineEntity;
+    }
+
+    private PipelineEntity savePipeline(String pipelineHash) {
+        String pipelineId = UUID.randomUUID().toString();
+        PipelineEntity pipelineEntity = new PipelineEntity(
+                pipelineId,
+                pipelineHash);
+        PipelineRepo.save(pipelineEntity);
+        return pipelineEntity;
+    }
+
+    private void saveStep(StepDefinition stepDefinition, String pipelineId) {
+        String stepId = UUID.randomUUID().toString();
+        StepEntity stepEntity = new StepEntity(
+                stepId,
+                pipelineId,
+                stepDefinition.operationName(),
+                stepDefinition.order(),
+                stepDefinition.stage());
+        StepRepo.save(stepEntity);
     }
 
     private String computePipelineHash(List<StepDefinition> steps) {
