@@ -8,13 +8,13 @@ public class FetchPipelineByIdOp {
 
     public Optional<Pipeline> execute(
             String pipelineId,
-            Function<String, StepOperation<?, ?>> stepOperationMapperFn
+            StepOperationMapper mapper
     ) {
         Optional<PipelineEntity> pipelineEntity = PipelineRepo.get(pipelineId);
         BuildPipelineOp buildPipelineOp = new BuildPipelineOp();
 
         return pipelineEntity
                 .map(PipelineEntity::pipelineId)
-                .map(id -> buildPipelineOp.execute(id, stepOperationMapperFn));
+                .map(id -> buildPipelineOp.execute(id, mapper));
     }
 }

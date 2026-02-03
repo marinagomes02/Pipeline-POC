@@ -13,13 +13,13 @@ import java.util.function.Function;
 
 public class FetchOrCreatePipelineOp {
 
-    public Pipeline execute(List<StepDefinition> stepDefinitions, Function<String, StepOperation<?, ?>> stepOperationMapperFn) {
+    public Pipeline execute(List<StepDefinition> stepDefinitions, StepOperationMapper mapper) {
         String pipelineHash = computePipelineHash(stepDefinitions); // hash do record
 
         PipelineEntity pipelineEntity = getExistingPipeline(pipelineHash)
                 .orElseGet(() -> createNewPipeline(stepDefinitions, pipelineHash));
 
-        return new BuildPipelineOp().execute(pipelineEntity.pipelineId(), stepOperationMapperFn);
+        return new BuildPipelineOp().execute(pipelineEntity.pipelineId(), mapper);
     }
 
     private Optional<PipelineEntity> getExistingPipeline(String pipelineHash) {

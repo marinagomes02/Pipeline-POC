@@ -11,24 +11,24 @@ public class BuildPipelineOp {
 
     public Pipeline execute(
             String pipelineId,
-            Function<String, StepOperation<?, ?>> stepOperationMapperFn
+            StepOperationMapper mapper
     ) {
         List<StepEntity> stepEntities = StepRepo.getByPipelineId(pipelineId)
                 .sorted(Comparator.comparing(StepEntity::order))
                 .toList();
 
-        return doExecute(stepEntities, pipelineId, stepOperationMapperFn);
+        return doExecute(stepEntities, pipelineId, mapper);
     }
 
     private Pipeline doExecute(
             List<StepEntity> stepEntities,
             String pipelineId,
-            Function<String, StepOperation<?, ?>> stepOperationMapperFn
+            StepOperationMapper mapper
     ) {
         List<Step> steps = new ArrayList<>();
 
         for (StepEntity stepEntity : stepEntities) {
-            StepOperation<?, ?> operation = stepOperationMapperFn.apply(stepEntity.operationName());
+            StepOperation<?, ?> operation = mapper.apply(stepEntity.operationName());
             Step step = new Step(stepEntity.order(), stepEntity.stage(), stepEntity.operationName(), operation);
             steps.add(step);
         }
