@@ -22,30 +22,25 @@ public class Pipeline {
         public <I, O> O execute(I input) {
             Object currentInput = input;
 
-            // Transform through steps before startStage (skipped steps)
-            for (Step step : steps) {
-                if (step.getStage() < startStage) {
-                    System.out.println("Skipping step (before start stage): " + step.getOperationName() +
-                            " (stage " + step.getStage() + ")");
-                    @SuppressWarnings("unchecked")
-                    StepOperation<Object, Object> operation = (StepOperation<Object, Object>) step.getOperation();
-                    currentInput = operation.transformForSkip(currentInput);
-                }
-            }
-
             // Execute steps from startStage onwards
             for (Step step : steps) {
-                if (step.getStage() < startStage) {
-                    continue; // Skip steps before startStage
+                // Skip steps before startStage
+                if (step.stage() < startStage) {
+                    System.out.println("Skipping step (before start stage): " + step.operationName() +
+                            " (stage " + step.stage() + ")");
+                    @SuppressWarnings("unchecked")
+                    StepOperation<Object, Object> operation = (StepOperation<Object, Object>) step.operation();
+                    currentInput = operation.transformForSkip(currentInput);
+                    continue;
                 }
 
                 try {
-                    System.out.println("Executing step: " + step.getOperationName() + " (stage " + step.getStage() + ")");
+                    System.out.println("Executing step: " + step.operationName() + " (stage " + step.stage() + ")");
                     @SuppressWarnings("unchecked")
-                    StepOperation<Object, Object> operation = (StepOperation<Object, Object>) step.getOperation();
+                    StepOperation<Object, Object> operation = (StepOperation<Object, Object>) step.operation();
                     currentInput = operation.execute(currentInput);
                 } catch (StepOperationExecutionError e) {
-                    throw new PipelineExecutionError(e.getMessage(), step.getOperationName(), step.getStage(), pipelineId);
+                    throw new PipelineExecutionError(e.getMessage(), step.operationName(), step.stage(), pipelineId);
                 }
             }
 

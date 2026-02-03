@@ -1,42 +1,38 @@
 package org.example.pipeline;
 
-import org.example.pipeline.dto.OperationName;
 import org.example.pipeline.dto.StepEntity;
-import org.example.refund.RefundPaymentStepOp;
-import org.example.refund.RefundPersonalCreditStepOp;
-import org.example.refund.RefundPointsStepOp;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.function.Function;
 
 public class BuildPipelineOp {
 
-    public Pipeline execute(String pipelineId) {
+    public Pipeline execute(
+            String pipelineId,
+            Function<String, StepOperation<?, ?>> stepOperationMapperFn
+    ) {
         List<StepEntity> stepEntities = StepRepo.getByPipelineId(pipelineId)
                 .sorted(Comparator.comparing(StepEntity::order))
                 .toList();
 
-        return doExecute(stepEntities, pipelineId);
+        return doExecute(stepEntities, pipelineId, stepOperationMapperFn);
     }
 
-    private Pipeline doExecute(List<StepEntity> stepEntities, String pipelineId) {
+    private Pipeline doExecute(
+            List<StepEntity> stepEntities,
+            String pipelineId,
+            Function<String, StepOperation<?, ?>> stepOperationMapperFn
+    ) {
         List<Step> steps = new ArrayList<>();
 
         for (StepEntity stepEntity : stepEntities) {
-            StepOperation<?, ?> operation = nameToStepOperation(stepEntity.operationName());
+            StepOperation<?, ?> operation = stepOperationMapperFn.apply(stepEntity.operationName());
             Step step = new Step(stepEntity.order(), stepEntity.stage(), stepEntity.operationName(), operation);
             steps.add(step);
         }
 
         return new Pipeline(pipelineId, steps);
-    }
-
-    static StepOperation<?, ?> nameToStepOperation(OperationName name) {
-        return switch (name) {
-            case REFUND_PAYMENT -> new RefundPaymentStepOp();
-            case REFUND_PERSONAL_CREDIT -> new RefundPersonalCreditStepOp();
-            case REFUND_POINTS -> new RefundPointsStepOp();
-        };
     }
 }

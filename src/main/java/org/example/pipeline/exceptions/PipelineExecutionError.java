@@ -1,12 +1,10 @@
 package org.example.pipeline.exceptions;
 
-import org.example.pipeline.dto.OperationName;
-
 public class PipelineExecutionError extends RuntimeException {
 
     public record ErrorInfo(
             String message,
-            OperationName operationName,
+            String operationName,
             Integer stage,
             String pipelineId
     ) {}
@@ -15,7 +13,7 @@ public class PipelineExecutionError extends RuntimeException {
 
     public PipelineExecutionError(
             String message,
-            OperationName operationName,
+            String operationName,
             Integer stage,
             String pipelineId
     ) {

@@ -1,9 +1,7 @@
 package org.example.pipeline;
 
-import org.example.pipeline.dto.OperationName;
-
 public record StepDefinition(
-        OperationName operationName,
+        String operationName,
         Integer order,
         Integer stage
 ) {}

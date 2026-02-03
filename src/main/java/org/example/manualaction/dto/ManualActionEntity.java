@@ -5,6 +5,7 @@ public record ManualActionEntity(
             String orderId,
             String pipelineId,
             Integer stage,
+            Integer nextStage,
             String errorMessage,
             ManualActionCause cause
     ) {}

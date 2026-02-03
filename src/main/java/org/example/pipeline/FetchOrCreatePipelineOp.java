@@ -3,30 +3,24 @@ package org.example.pipeline;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.codec.digest.DigestUtils;
-import org.example.pipeline.dto.OperationName;
 import org.example.pipeline.dto.PipelineEntity;
 import org.example.pipeline.dto.StepEntity;
-import org.example.refund.RefundPaymentStepOp;
-import org.example.refund.RefundPersonalCreditStepOp;
-import org.example.refund.RefundPointsStepOp;
 
-import java.nio.channels.Pipe;
-import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class FetchOrCreatePipelineOp {
 
-    public Pipeline execute(List<StepDefinition> stepDefinitions) {
-        String pipelineHash = computePipelineHash(stepDefinitions);
+    public Pipeline execute(List<StepDefinition> stepDefinitions, Function<String, StepOperation<?, ?>> stepOperationMapperFn) {
+        String pipelineHash = computePipelineHash(stepDefinitions); // hash do record
 
         PipelineEntity pipelineEntity = getExistingPipeline(pipelineHash)
                 .orElseGet(() -> createNewPipeline(stepDefinitions, pipelineHash));
 
-        return new BuildPipelineOp().execute(pipelineEntity.pipelineId());
+        return new BuildPipelineOp().execute(pipelineEntity.pipelineId(), stepOperationMapperFn);
     }
 
     private Optional<PipelineEntity> getExistingPipeline(String pipelineHash) {
@@ -37,7 +31,8 @@ public class FetchOrCreatePipelineOp {
         PipelineEntity pipelineEntity = savePipeline(pipelineHash);
 
         stepDefinitions.forEach(stepDef ->
-                saveStep(stepDef, pipelineEntity.pipelineId()));
+                saveStep(stepDef, pipelineEntity.pipelineId())
+        );
 
         System.out.println("Created new pipeline with hash: " + pipelineHash + " and " + stepDefinitions.size() + " steps");
 
@@ -68,7 +63,7 @@ public class FetchOrCreatePipelineOp {
         try {
             ObjectMapper objectMapper = new ObjectMapper();
             List<String> stepNamesAndStages = steps.stream()
-                    .map(step -> step.operationName() + "-" + step.stage())
+                    .map(step -> step.operationName() + "-" + step.stage() + "-" + step.order())
                     .collect(Collectors.toList());
             String json = objectMapper.writeValueAsString(stepNamesAndStages);
             return DigestUtils.sha256Hex(json);
