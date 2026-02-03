@@ -2,10 +2,14 @@ package org.example;
 
 import java.util.List;
 import java.util.Optional;
+
+import org.example.order.OrderPaymentInfoRepo;
 import org.example.order.dto.OrderAssociatedIdsAndCreationDate;
 import org.example.order.dto.OrderLineDetails;
 import org.example.order.dto.OrderLineStatus;
 import org.example.order.OrderLineStatusRepo;
+import org.example.order.dto.OrderPaymentInfo;
+import org.example.order.dto.PaymentMethod;
 import org.example.order.dto.Status;
 import org.example.pipeline.exceptions.PipelineExecutionError;
 import org.example.refund.Refund2Op;
@@ -17,17 +21,18 @@ public class RefundPipelineV3 {
 
     public static void main(String[] args) {
 
-        tryRefundAndFirstStepFailsUseCase();
+        tryRefundAndSecondStepFailsMustCreateManualActionAndRollbackFirstStepUseCase();
 
         tryNewRefundWithSameStepsShouldReusePipelineUseCase();
 
         tryNewRefundWithDifferentStepsShouldCreateNewPipelineUseCase();
     }
 
-    private static void tryRefundAndFirstStepFailsUseCase() {
+    private static void tryRefundAndSecondStepFailsMustCreateManualActionAndRollbackFirstStepUseCase() {
         // Example: Process refund for Personal Credit payment method
         String orderId = "ORDER-12345";
         OrderLineStatusRepo.save(orderId, new OrderLineStatus(Status.PENDING, Optional.empty()));
+        OrderPaymentInfoRepo.save(orderId, new OrderPaymentInfo(PaymentMethod.PERSONAL_CREDIT));
 
         RefundTransactionPaymentStepRequest initialInput = new RefundTransactionPaymentStepRequest(
                 new OrderAssociatedIdsAndCreationDate(orderId),
@@ -56,6 +61,8 @@ public class RefundPipelineV3 {
         System.out.println("=== New request execution (should reuse existing pipeline) ===");
         String anotherOrderId = "ORDER-12346";
         OrderLineStatusRepo.save(anotherOrderId, new OrderLineStatus(Status.PENDING, Optional.empty()));
+        OrderPaymentInfoRepo.save(anotherOrderId, new OrderPaymentInfo(PaymentMethod.PERSONAL_CREDIT));
+
 
         RefundTransactionPaymentStepRequest anotherInitialInput = new RefundTransactionPaymentStepRequest(
                 new OrderAssociatedIdsAndCreationDate(anotherOrderId),
@@ -75,6 +82,8 @@ public class RefundPipelineV3 {
         System.out.println("=== Simulate pipeline change and execute ===");
         String newOrderId = "ORDER-67890";
         OrderLineStatusRepo.save(newOrderId, new OrderLineStatus(Status.PENDING, Optional.empty()));
+        OrderPaymentInfoRepo.save(newOrderId, new OrderPaymentInfo(PaymentMethod.PERSONAL_CREDIT));
+
 
         RefundTransactionPaymentStepRequest changedInitialInput = new RefundTransactionPaymentStepRequest(
                 new OrderAssociatedIdsAndCreationDate(newOrderId),

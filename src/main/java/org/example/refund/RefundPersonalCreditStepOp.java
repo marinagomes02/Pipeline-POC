@@ -2,6 +2,7 @@ package org.example.refund;
 
 import org.example.order.dto.PaymentMethod;
 import org.example.pipeline.StepOperation;
+import org.example.pipeline.exceptions.StepOperationExecutionError;
 import org.example.refund.dto.RefundPaymentMethodStepResponse;
 import org.example.refund.dto.RefundTransactionPaymentStepResponse;
 
@@ -10,14 +11,15 @@ public class RefundPersonalCreditStepOp implements StepOperation<RefundTransacti
         public RefundPaymentMethodStepResponse execute(RefundTransactionPaymentStepResponse input) {
 
             PaymentMethod paymentMethod = input.orderPaymentInfo().paymentMethod();
-            if (paymentMethod != PaymentMethod.PERSONAL_CREDIT) {
+            throw new StepOperationExecutionError("Personal credit refund step is not implemented yet");
+            /*if (paymentMethod != PaymentMethod.PERSONAL_CREDIT) {
                 System.out.println("Skipping personal credit refund - payment method is: " + paymentMethod);
                 return transformForSkip(input);
             }
 
             // Perform actual personal credit refund logic here
 
-            return transformForSkip(input);
+            return transformForSkip(input);    */
         }
 
         @Override
@@ -26,5 +28,10 @@ public class RefundPersonalCreditStepOp implements StepOperation<RefundTransacti
                     input.order(),
                     input.orderLines(),
                     input.returnPublicId());
+        }
+
+        @Override
+        public void rollback(RefundPaymentMethodStepResponse output) {
+            System.out.println("Rollback called for personal credit refund step for order: " + output.order().orderId() + ", requires manual intervention");
         }
     }

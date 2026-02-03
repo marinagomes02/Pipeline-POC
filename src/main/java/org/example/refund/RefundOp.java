@@ -50,8 +50,8 @@ public class RefundOp implements PipelineBuilder {
 
         if (operationName == RefundOperationName.REFUND_PAYMENT || operationName == RefundOperationName.REFUND_PERSONAL_CREDIT) {
             new RegisterManualActionOp().execute(
-                    pipelineId,
                     orderId,
+                    pipelineId,
                     e.getErrorInfo().stage(),
                     e.getErrorInfo().stage()+1,
                     e.getErrorInfo().message(),
