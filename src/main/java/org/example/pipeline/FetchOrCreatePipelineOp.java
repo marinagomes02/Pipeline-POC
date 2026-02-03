@@ -62,9 +62,9 @@ public class FetchOrCreatePipelineOp {
     private String computePipelineHash(List<StepDefinition> steps) {
         try {
             ObjectMapper objectMapper = new ObjectMapper();
-            List<String> stepNamesAndStages = steps.stream()
-                    .map(step -> step.operationName() + "-" + step.stage() + "-" + step.order())
-                    .collect(Collectors.toList());
+            List<Integer> stepNamesAndStages = steps.stream()
+                    .map(Record::hashCode)
+                    .toList();
             String json = objectMapper.writeValueAsString(stepNamesAndStages);
             return DigestUtils.sha256Hex(json);
         } catch (JsonProcessingException e) {
