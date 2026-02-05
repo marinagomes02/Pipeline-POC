@@ -18,7 +18,6 @@ public class RegisterManualActionOp {
             String orderId,
             String pipelineExecutionId,
             Integer step,
-            Integer nextStep,
             String errorMessage,
             String cause
     ) {
@@ -28,7 +27,6 @@ public class RegisterManualActionOp {
                 orderId,
                 pipelineExecutionId,
                 step,
-                nextStep,
                 errorMessage,
                 cause);
         ManualActionRepo.save(manualAction);

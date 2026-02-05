@@ -9,9 +9,12 @@ import org.poc.pipeline.order.dto.OrderPaymentInfo;
 import org.poc.pipeline.order.dto.PaymentMethod;
 import org.poc.pipeline.order.dto.Status;
 import org.poc.pipeline.pipeline.exceptions.PipelineExecutionError;
+import org.poc.pipeline.refund.RefundAnotherOp;
 import org.poc.pipeline.refund.RefundOp;
+import org.poc.pipeline.refund.dto.RefundPaymentMethodStepResponse;
 import org.poc.pipeline.refund.dto.RefundPointsStepResponse;
 import org.poc.pipeline.refund.dto.RefundTransactionPaymentStepRequest;
+import org.poc.pipeline.refund.dto.RefundTransactionPaymentStepResponse;
 
 import java.util.List;
 import java.util.Optional;
@@ -24,7 +27,7 @@ public class Main {
 
         tryNewRefundWithSameStepsShouldReusePipelineUseCase();
 
-        tryNewRefundWithDifferentStepsShouldCreateNewPipelineUseCase();
+        tryRefundAndLastStepFailsMustCreateManualActionAndRollbackPreviousStepUseCase();
     }
 
     private static void tryRefundAndSecondStepFailsMustCreateManualActionAndRollbackFirstStepUseCase() {
@@ -76,9 +79,9 @@ public class Main {
         System.out.println();
     }
 
-    private static void tryNewRefundWithDifferentStepsShouldCreateNewPipelineUseCase() {
+    private static void tryRefundAndLastStepFailsMustCreateManualActionAndRollbackPreviousStepUseCase() {
         // Simulate changes to the refundOp -> it will create a new pipeline
-        System.out.println("=== Simulate pipeline change and execute ===");
+        System.out.println("=== Another pipeline and execute ===");
         String newOrderId = "ORDER-67890";
         OrderLineStatusRepo.save(newOrderId, new OrderLineStatus(Status.PENDING, Optional.empty()));
         OrderPaymentInfoRepo.save(newOrderId, new OrderPaymentInfo(PaymentMethod.PERSONAL_CREDIT));
@@ -89,10 +92,20 @@ public class Main {
                 List.of(new OrderLineDetails("LINE-3")),
                 Optional.empty());
 
+        // Fail on refund payment
+        System.out.println("=== First execution ===");
         try {
-            //RefundPointsStepResponse result4 = new Refund2Op().processRefund(changedInitialInput);
+            RefundPaymentMethodStepResponse result = new RefundAnotherOp().processRefund(changedInitialInput);
         } catch (PipelineExecutionError e) {
-            System.out.println("Use case with changed pipeline finished");
+                // DO nothing
         }
+
+        System.out.println();
+
+        // Simulate retry after failure (some steps already executed)
+        System.out.println("=== Retry execution (resuming from last completed step) ===");
+        RefundPaymentMethodStepResponse result2 = new RefundAnotherOp().processRefund(changedInitialInput);
+        System.out.println("Result: " + result2);
+        System.out.println();
     }
 }

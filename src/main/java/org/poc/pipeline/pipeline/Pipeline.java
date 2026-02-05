@@ -118,8 +118,8 @@ public class Pipeline<I, O> {
 
     public Integer getNextStepNumberAfterStage(Integer stage) {
         return steps.stream()
-                .map(Step::stage)
-                .filter(s -> s > stage)
+                .filter(step -> step.stage() > stage)
+                .map(Step::position)
                 .min(Integer::compareTo)
                 .orElseGet(steps::size);
     }

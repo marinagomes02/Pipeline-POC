@@ -3,9 +3,8 @@ package org.poc.pipeline.manualaction.dto;
 public record ManualActionEntity(
             ManualActionId manualActionId,
             String orderId,
-            String pipelineId,
+            String pipelineExecutionId,
             Integer step,
-            Integer nextStep,
             String errorMessage,
             String cause
 ) {}

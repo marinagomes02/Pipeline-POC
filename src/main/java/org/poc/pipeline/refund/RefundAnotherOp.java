@@ -10,22 +10,24 @@ import org.poc.pipeline.pipeline.PipelineExecutionRepo;
 import org.poc.pipeline.pipeline.dto.PipelineExecutionEntity;
 import org.poc.pipeline.pipeline.exceptions.PipelineExecutionError;
 import org.poc.pipeline.refund.dto.RefundOperationName;
+import org.poc.pipeline.refund.dto.RefundPaymentMethodStepResponse;
 import org.poc.pipeline.refund.dto.RefundPointsStepResponse;
 import org.poc.pipeline.refund.dto.RefundTransactionPaymentStepRequest;
+import org.poc.pipeline.refund.dto.interfaces.IRefundPaymentMethodStepRequest;
 import org.poc.pipeline.refund.dto.interfaces.IRefundTransactionStepRequest;
-import org.poc.pipeline.refund.factories.RefundCompletePipelineFactory;
+import org.poc.pipeline.refund.factories.RefundAnotherPipelineFactory;
 
 import java.util.Optional;
 import java.util.UUID;
 
-public class RefundOp {
+public class RefundAnotherOp {
 
-    public RefundPointsStepResponse processRefund(RefundTransactionPaymentStepRequest request) {
+    public RefundPaymentMethodStepResponse processRefund(IRefundTransactionStepRequest request) {
 
         String orderId = request.order().orderId();
         OrderLineStatus orderLineStatus = OrderLineStatusRepo.get(orderId);
 
-        Pipeline<IRefundTransactionStepRequest, RefundPointsStepResponse> pipeline = new RefundCompletePipelineFactory().create();
+        Pipeline<IRefundTransactionStepRequest, RefundPaymentMethodStepResponse> pipeline = new RefundAnotherPipelineFactory().create();
 
         setStartStageIfOrderLineHasManualAction(orderLineStatus, pipeline);
 
@@ -40,7 +42,7 @@ public class RefundOp {
 
     private void setStartStageIfOrderLineHasManualAction(
             OrderLineStatus orderLineStatus,
-            Pipeline<IRefundTransactionStepRequest, RefundPointsStepResponse> pipeline
+            Pipeline<IRefundTransactionStepRequest, RefundPaymentMethodStepResponse> pipeline
     ) {
         Optional<ManualActionEntity> manualActionOpt = orderLineStatus.manualActionId().flatMap(ManualActionRepo::get);
 

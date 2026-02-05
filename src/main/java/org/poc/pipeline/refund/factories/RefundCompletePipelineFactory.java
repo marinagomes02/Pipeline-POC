@@ -21,14 +21,17 @@ public class RefundCompletePipelineFactory implements PipelineFactory<IRefundTra
                 .builder(new Step<>(
                         new RefundPaymentStepOp(),
                         RefundOperationName.REFUND_PAYMENT.value(),
+                        0,
                         0))
                 .pipe(new Step<>(
                         new RefundPersonalCreditStepOp(),
                         RefundOperationName.REFUND_PERSONAL_CREDIT.value(),
+                        1,
                         0))
                 .pipe(new Step<>(
                         new RefundPointsStepOp(),
                         RefundOperationName.REFUND_POINTS.value(),
+                        2,
                         1))
                 .build(pipelineId);
     }
