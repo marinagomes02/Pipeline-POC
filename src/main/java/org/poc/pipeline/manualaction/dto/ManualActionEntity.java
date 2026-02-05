@@ -4,8 +4,8 @@ public record ManualActionEntity(
             ManualActionId manualActionId,
             String orderId,
             String pipelineId,
-            Integer stage,
-            Integer nextStage,
+            Integer step,
+            Integer nextStep,
             String errorMessage,
             String cause
-    ) {}
+) {}

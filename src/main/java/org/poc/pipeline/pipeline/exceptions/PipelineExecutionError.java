@@ -5,6 +5,7 @@ public class PipelineExecutionError extends RuntimeException {
     public record ErrorInfo(
             String message,
             String operationName,
+            Integer step,
             Integer stage,
             String pipelineId
     ) {}
@@ -14,12 +15,14 @@ public class PipelineExecutionError extends RuntimeException {
     public PipelineExecutionError(
             String message,
             String operationName,
+            Integer step,
             Integer stage,
             String pipelineId
     ) {
         this.errorInfo = new ErrorInfo(
                 message,
                 operationName,
+                step,
                 stage,
                 pipelineId);
     }

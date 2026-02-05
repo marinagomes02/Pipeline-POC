@@ -6,6 +6,8 @@ import org.poc.pipeline.manualaction.dto.ManualActionRepo;
 import org.poc.pipeline.order.OrderLineStatusRepo;
 import org.poc.pipeline.order.dto.OrderLineStatus;
 import org.poc.pipeline.order.dto.Status;
+import org.poc.pipeline.pipeline.PipelineExecutionRepo;
+import org.poc.pipeline.pipeline.dto.PipelineExecutionEntity;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -14,9 +16,9 @@ public class RegisterManualActionOp {
 
     public void execute(
             String orderId,
-            String pipelineId,
-            Integer stage,
-            Integer nextStage,
+            String pipelineExecutionId,
+            Integer step,
+            Integer nextStep,
             String errorMessage,
             String cause
     ) {
@@ -24,9 +26,9 @@ public class RegisterManualActionOp {
         ManualActionEntity manualAction = new ManualActionEntity(
                 manualActionId,
                 orderId,
-                pipelineId,
-                stage,
-                nextStage,
+                pipelineExecutionId,
+                step,
+                nextStep,
                 errorMessage,
                 cause);
         ManualActionRepo.save(manualAction);

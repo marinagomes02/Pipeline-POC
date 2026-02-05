@@ -15,31 +15,34 @@ public class RefundWithManualActionOp {
     public RefundPointsStepResponse processRefund(RefundTransactionPaymentStepRequest request, ManualActionEntity manualAction) {
         Pipeline<IRefundTransactionStepRequest, RefundPointsStepResponse> pipeline = getManualActionPipeline(manualAction);
 
+
+
         try {
             return pipeline.execute(request);
         } catch (PipelineExecutionError e) {
             System.out.println("Pipeline execution failed: " + e.getErrorInfo().message());
-            handlePipelineError(e, pipeline.pipelineId(), request.order().orderId());
+            handlePipelineError(e, pipeline, request.order().orderId());
             throw e;
         }
     }
 
-    private Pipeline<IRefundTransactionStepRequest, RefundPointsStepResponse> getManualActionPipeline(ManualActionEntity manualAction) {
-        // TODO: get pipeline from manual action pipeline id
-        return null;
-    }
-
-    private void handlePipelineError(PipelineExecutionError e, String pipelineId, String orderId) {
+    private void handlePipelineError(PipelineExecutionError e, Pipeline<?, ?> pipeline, String orderId) {
         RefundOperationName operationName = RefundOperationName.from(e.getErrorInfo().operationName());
 
         if (operationName == RefundOperationName.REFUND_PAYMENT || operationName == RefundOperationName.REFUND_PERSONAL_CREDIT) {
             new RegisterManualActionOp().execute(
                     orderId,
-                    pipelineId,
-                    e.getErrorInfo().stage(),
-                    e.getErrorInfo().stage()+1,
+                    pipeline.pipelineId(),
+                    e.getErrorInfo().step(),
+                    pipeline.getNextStepNumberAfterStage(e.getErrorInfo().stage()),
                     e.getErrorInfo().message(),
                     operationName.value());
         }
+    }
+
+    private Pipeline<IRefundTransactionStepRequest, RefundPointsStepResponse> getManualActionPipeline(ManualActionEntity manualAction) {
+        // In a real implementation, you would determine the appropriate pipeline based on the manual action details.
+        // For simplicity, we're returning the same pipeline here.
+        return new RefundCompletePipelineFactory().create();
     }
 }

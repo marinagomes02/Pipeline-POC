@@ -7,6 +7,7 @@ import org.poc.pipeline.pipeline.exceptions.StepOperationExecutionError;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class Pipeline<I, O> {
 
@@ -20,13 +21,13 @@ public class Pipeline<I, O> {
 
     private final String pipelineId;
     private final List<Step<?, ?>> steps;
-    private Integer startStage;
+    private Integer startStep;
     private final List<RollbackStep<?, ?>> executedSteps = new ArrayList<>();
 
     public Pipeline(String pipelineId, List<Step<?, ?>> steps) {
         this.pipelineId = pipelineId;
         this.steps = steps;
-        this.startStage = DEFAULT_INITIAL_STAGE;
+        this.startStep = DEFAULT_INITIAL_STAGE;
     }
 
     public static <I, O> Builder<I, O> builder(Step<I, O> firstStep) {
@@ -48,9 +49,10 @@ public class Pipeline<I, O> {
 
     private O doExecute(I input) {
         Object currentInput = input;
-        for (Step<?, ?> step : steps) {
+        for (int stepNumber = 0; stepNumber < steps.size(); stepNumber++) {
+            Step<?, ?> step = steps.get(stepNumber);
             // Skip steps before startStage
-            if (step.stage() < startStage) {
+            if (stepNumber < startStep) {
                 System.out.println("Skipping step (before start stage): " + step.operationName() +
                         " (stage " + step.stage() + ")");
                 @SuppressWarnings("unchecked")
@@ -68,7 +70,7 @@ public class Pipeline<I, O> {
                 currentInput = output;
             } catch (StepOperationExecutionError e) {
                 System.out.println("Step operation execution error in step: " + step.operationName() + " - " + e.getMessage());
-                throw new PipelineExecutionError(e.getMessage(), step.operationName(), step.stage(), pipelineId);
+                throw new PipelineExecutionError(e.getMessage(), step.operationName(), stepNumber, step.stage(), pipelineId);
             }
         }
         return (O) currentInput;
@@ -110,7 +112,15 @@ public class Pipeline<I, O> {
         return pipelineId;
     }
 
-    public void setStartStage(Integer startStage) {
-        this.startStage = startStage;
+    public void setStartStep(Integer startStep) {
+        this.startStep = startStep;
+    }
+
+    public Integer getNextStepNumberAfterStage(Integer stage) {
+        return steps.stream()
+                .map(Step::stage)
+                .filter(s -> s > stage)
+                .min(Integer::compareTo)
+                .orElseGet(steps::size);
     }
 }
