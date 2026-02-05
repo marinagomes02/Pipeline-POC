@@ -2,14 +2,15 @@ package org.poc.pipeline.refund;
 
 import org.poc.pipeline.order.OrderPaymentInfoRepo;
 import org.poc.pipeline.order.dto.OrderPaymentInfo;
-import org.poc.pipeline.pipeline.StepOperation;
+import org.poc.pipeline.pipeline.dto.StepOperation;
 import org.poc.pipeline.pipeline.exceptions.StepOperationExecutionError;
-import org.poc.pipeline.refund.dto.RefundTransactionPaymentStepRequest;
 import org.poc.pipeline.refund.dto.RefundTransactionPaymentStepResponse;
+import org.poc.pipeline.refund.dto.interfaces.IRefundTransactionStepRequest;
 
-public class RefundPaymentStepOp implements StepOperation<RefundTransactionPaymentStepRequest, RefundTransactionPaymentStepResponse> {
+public class RefundPaymentStepOp implements StepOperation<IRefundTransactionStepRequest, RefundTransactionPaymentStepResponse> {
+
     @Override
-    public RefundTransactionPaymentStepResponse execute(RefundTransactionPaymentStepRequest input) {
+    public RefundTransactionPaymentStepResponse execute(IRefundTransactionStepRequest input) {
         try {
             OrderPaymentInfo paymentInfo = getOrderPaymentInfo(input);
             // Perform actual refund payment logic here
@@ -25,7 +26,7 @@ public class RefundPaymentStepOp implements StepOperation<RefundTransactionPayme
     }
 
     @Override
-    public RefundTransactionPaymentStepResponse transformForSkip(RefundTransactionPaymentStepRequest input) {
+    public RefundTransactionPaymentStepResponse transformForSkip(IRefundTransactionStepRequest input) {
         return new RefundTransactionPaymentStepResponse(
                 input.order(),
                 input.orderLines(),
@@ -38,7 +39,7 @@ public class RefundPaymentStepOp implements StepOperation<RefundTransactionPayme
         System.out.println("Rollback called for refund payment step for order: " + output.order().orderId() + ", requires manual intervention");
     }
 
-    private OrderPaymentInfo getOrderPaymentInfo(RefundTransactionPaymentStepRequest input) {
+    private OrderPaymentInfo getOrderPaymentInfo(IRefundTransactionStepRequest input) {
         return OrderPaymentInfoRepo.get(input.order().orderId());
     }
 }

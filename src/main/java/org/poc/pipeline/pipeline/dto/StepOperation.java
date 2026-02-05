@@ -1,4 +1,4 @@
-package org.poc.pipeline.pipeline;
+package org.poc.pipeline.pipeline.dto;
 
 public interface StepOperation<I, O> {
         O execute(I input);

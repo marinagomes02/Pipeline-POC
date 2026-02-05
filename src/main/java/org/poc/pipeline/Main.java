@@ -9,13 +9,10 @@ import org.poc.pipeline.order.dto.OrderPaymentInfo;
 import org.poc.pipeline.order.dto.PaymentMethod;
 import org.poc.pipeline.order.dto.Status;
 import org.poc.pipeline.pipeline.exceptions.PipelineExecutionError;
-import org.poc.pipeline.refund.Refund2Op;
 import org.poc.pipeline.refund.RefundOp;
 import org.poc.pipeline.refund.dto.RefundPointsStepResponse;
 import org.poc.pipeline.refund.dto.RefundTransactionPaymentStepRequest;
 
-import java.text.ParseException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -93,7 +90,7 @@ public class Main {
                 Optional.empty());
 
         try {
-            RefundPointsStepResponse result4 = new Refund2Op().processRefund(changedInitialInput);
+            //RefundPointsStepResponse result4 = new Refund2Op().processRefund(changedInitialInput);
         } catch (PipelineExecutionError e) {
             System.out.println("Use case with changed pipeline finished");
         }
