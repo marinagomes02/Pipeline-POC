@@ -1,11 +1,6 @@
 package org.poc.pipeline.refund;
 
 import org.poc.pipeline.manualaction.RegisterManualActionOp;
-import org.poc.pipeline.manualaction.dto.ManualActionCause;
-import org.poc.pipeline.manualaction.dto.ManualActionEntity;
-import org.poc.pipeline.manualaction.dto.ManualActionRepo;
-import org.poc.pipeline.order.OrderLineStatusRepo;
-import org.poc.pipeline.order.dto.OrderLineStatus;
 import org.poc.pipeline.pipeline.Pipeline;
 import org.poc.pipeline.pipeline.exceptions.PipelineExecutionError;
 import org.poc.pipeline.refund.dto.RefundOperationName;
@@ -13,8 +8,6 @@ import org.poc.pipeline.refund.dto.RefundPointsStepResponse;
 import org.poc.pipeline.refund.dto.RefundTransactionPaymentStepRequest;
 import org.poc.pipeline.refund.dto.interfaces.IRefundTransactionStepRequest;
 import org.poc.pipeline.refund.factories.RefundCompletePipelineFactory;
-
-import java.util.Optional;
 
 public class RefundOp {
 
@@ -41,15 +34,7 @@ public class RefundOp {
                     e.getErrorInfo().stage(),
                     e.getErrorInfo().stage()+1,
                     e.getErrorInfo().message(),
-                    operationNameToManualActionCause(operationName));
+                    operationName.value());
         }
-    }
-
-    private ManualActionCause operationNameToManualActionCause(RefundOperationName operationName) {
-        return switch (operationName) {
-            case REFUND_PAYMENT -> ManualActionCause.REFUND_PAYMENT_ERROR;
-            case REFUND_PERSONAL_CREDIT -> ManualActionCause.REFUND_PERSONAL_CREDIT_ERROR;
-            default -> throw new IllegalArgumentException("Invalid manual action cause name: " + operationName);
-        };
     }
 }

@@ -1,6 +1,5 @@
 package org.poc.pipeline.manualaction;
 
-import org.poc.pipeline.manualaction.dto.ManualActionCause;
 import org.poc.pipeline.manualaction.dto.ManualActionEntity;
 import org.poc.pipeline.manualaction.dto.ManualActionId;
 import org.poc.pipeline.manualaction.dto.ManualActionRepo;
@@ -19,7 +18,7 @@ public class RegisterManualActionOp {
             Integer stage,
             Integer nextStage,
             String errorMessage,
-            ManualActionCause cause
+            String cause
     ) {
         ManualActionId manualActionId = new ManualActionId(UUID.randomUUID().toString());
         ManualActionEntity manualAction = new ManualActionEntity(

@@ -7,5 +7,5 @@ public record ManualActionEntity(
             Integer stage,
             Integer nextStage,
             String errorMessage,
-            ManualActionCause cause
+            String cause
     ) {}
