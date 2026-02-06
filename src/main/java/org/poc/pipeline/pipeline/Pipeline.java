@@ -7,7 +7,6 @@ import org.poc.pipeline.pipeline.exceptions.StepOperationExecutionError;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 public class Pipeline<I, O> {
 
@@ -19,13 +18,15 @@ public class Pipeline<I, O> {
 
     private final Integer DEFAULT_INITIAL_STAGE = 0;
 
-    private final String pipelineId;
+    private final String id;
+    private final String hash;
     private final List<Step<?, ?>> steps;
     private Integer startStep;
     private final List<RollbackStep<?, ?>> executedSteps = new ArrayList<>();
 
-    public Pipeline(String pipelineId, List<Step<?, ?>> steps) {
-        this.pipelineId = pipelineId;
+    public Pipeline(String id, String hash, List<Step<?, ?>> steps) {
+        this.id = id;
+        this.hash = hash;
         this.steps = steps;
         this.startStep = DEFAULT_INITIAL_STAGE;
     }
@@ -70,7 +71,7 @@ public class Pipeline<I, O> {
                 currentInput = output;
             } catch (StepOperationExecutionError e) {
                 System.out.println("Step operation execution error in step: " + step.operationName() + " - " + e.getMessage());
-                throw new PipelineExecutionError(e.getMessage(), step.operationName(), stepNumber, step.stage(), pipelineId);
+                throw new PipelineExecutionError(e.getMessage(), step.operationName(), stepNumber, step.stage(), id);
             }
         }
         return (O) currentInput;
@@ -103,13 +104,21 @@ public class Pipeline<I, O> {
             return new Builder<>(steps);
         }
 
-        public Pipeline<I, O> build(String pipelineId) {
-            return new Pipeline<>(pipelineId, steps);
+        public Pipeline<I, O> build(String pipelineId, String pipelineHash) {
+            return new Pipeline<>(pipelineId, pipelineHash, steps);
         }
     }
 
     public String pipelineId() {
-        return pipelineId;
+        return id;
+    }
+
+    public String pipelineHash() {
+        return hash;
+    }
+
+    public List<Step<?, ?>> steps() {
+        return steps;
     }
 
     public void setStartStep(Integer startStep) {

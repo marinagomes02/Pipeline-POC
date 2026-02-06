@@ -68,6 +68,7 @@ public class RefundAnotherOp {
             PipelineExecutionEntity pipelineExecution = PipelineExecutionRepo.create(new PipelineExecutionEntity(
                     UUID.randomUUID().toString(),
                     pipeline.pipelineId(),
+                    pipeline.pipelineHash(),
                     pipeline.getNextStepNumberAfterStage(e.getErrorInfo().stage())));
 
             new RegisterManualActionOp().execute(

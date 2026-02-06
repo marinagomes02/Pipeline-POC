@@ -1,5 +1,8 @@
 package org.poc.pipeline;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.poc.pipeline.order.OrderLineStatusRepo;
 import org.poc.pipeline.order.OrderPaymentInfoRepo;
 import org.poc.pipeline.order.dto.OrderAssociatedIdsAndCreationDate;
@@ -8,6 +11,7 @@ import org.poc.pipeline.order.dto.OrderLineStatus;
 import org.poc.pipeline.order.dto.OrderPaymentInfo;
 import org.poc.pipeline.order.dto.PaymentMethod;
 import org.poc.pipeline.order.dto.Status;
+import org.poc.pipeline.pipeline.Pipeline;
 import org.poc.pipeline.pipeline.exceptions.PipelineExecutionError;
 import org.poc.pipeline.refund.RefundAnotherOp;
 import org.poc.pipeline.refund.RefundOp;
@@ -15,13 +19,18 @@ import org.poc.pipeline.refund.dto.RefundPaymentMethodStepResponse;
 import org.poc.pipeline.refund.dto.RefundPointsStepResponse;
 import org.poc.pipeline.refund.dto.RefundTransactionPaymentStepRequest;
 import org.poc.pipeline.refund.dto.RefundTransactionPaymentStepResponse;
+import org.poc.pipeline.refund.dto.interfaces.IRefundTransactionStepRequest;
+import org.poc.pipeline.refund.factories.RefundAnotherPipelineFactory;
+import org.poc.pipeline.refund.factories.RefundCompletePipelineFactory;
 
 import java.util.List;
 import java.util.Optional;
 
 public class Main {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws JsonProcessingException {
+
+        computePipelineHash();
 
         tryRefundAndSecondStepFailsMustCreateManualActionAndRollbackFirstStepUseCase();
 
@@ -107,5 +116,17 @@ public class Main {
         RefundPaymentMethodStepResponse result2 = new RefundAnotherOp().processRefund(changedInitialInput);
         System.out.println("Result: " + result2);
         System.out.println();
+    }
+
+    private static void computePipelineHash() throws JsonProcessingException {
+        Pipeline<IRefundTransactionStepRequest, RefundPointsStepResponse> pipeline = new RefundCompletePipelineFactory().create();
+
+        var stuffToHash = pipeline.steps().stream()
+                .map(step -> step.operationName() + "-" + step.position() + "-" + step.stage())
+                .reduce("", (a, b) -> a + "|" + b);
+        var json = new ObjectMapper().writeValueAsString(stuffToHash);
+        String hash = DigestUtils.sha256Hex(json);
+
+        System.out.println("Pipeline hash: " + hash);
     }
 }

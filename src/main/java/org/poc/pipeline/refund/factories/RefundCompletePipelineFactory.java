@@ -14,6 +14,7 @@ import org.poc.pipeline.refund.dto.interfaces.IRefundTransactionStepRequest;
 public class RefundCompletePipelineFactory implements PipelineFactory<IRefundTransactionStepRequest, RefundPointsStepResponse> {
 
     private final String pipelineId = "7355ab88-4b17-4a42-9ba3-804f018715d1";
+    private final String pipelineHash = "add29b4f3c5070e3647dbcb9653ca684418713806d0cc62e95da87448b5f5200";
 
     @Override
     public Pipeline<IRefundTransactionStepRequest, RefundPointsStepResponse> create() {
@@ -33,6 +34,11 @@ public class RefundCompletePipelineFactory implements PipelineFactory<IRefundTra
                         RefundOperationName.REFUND_POINTS.value(),
                         2,
                         1))
-                .build(pipelineId);
+                .build(pipelineId, pipelineHash);
+    }
+
+    @Override
+    public String getPipelineHash() {
+        return pipelineHash;
     }
 }
